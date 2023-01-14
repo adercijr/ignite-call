@@ -4,8 +4,9 @@ import { ArrowRight } from "phosphor-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { useRouter } from "next/router"
 
-const claimUSernameFormSchema = z.object({
+const claimUsernameFormSchema = z.object({
   username: z
     .string()
     .min(3, { message: "minimum 3 characters" })
@@ -13,18 +14,24 @@ const claimUSernameFormSchema = z.object({
     .transform((username) => username.toLowerCase()),
 })
 
-type ClaimUSernameFormData = z.infer<typeof claimUSernameFormSchema>
+type ClaimUsernameFormData = z.infer<typeof claimUsernameFormSchema>
 
-export function ClaimUSernameForm() {
+export function ClaimUsernameForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm<ClaimUSernameFormData>({
-    resolver: zodResolver(claimUSernameFormSchema),
+    formState: { errors, isSubmitting },
+  } = useForm<ClaimUsernameFormData>({
+    resolver: zodResolver(claimUsernameFormSchema),
   })
 
-  async function handleClaimUsername(data: ClaimUSernameFormData) {}
+  const router = useRouter()
+
+  async function handleClaimUsername(data: ClaimUsernameFormData) {
+    const { username } = data
+
+    await router.push(`/register?username=${username}`)
+  }
 
   return (
     <>
@@ -35,7 +42,7 @@ export function ClaimUSernameForm() {
           placeholder="your-user"
           {...register("username")}
         ></TextInput>
-        <Button size="sm" type="submit">
+        <Button size="sm" type="submit" disabled={isSubmitting}>
           To schedule
           <ArrowRight />
         </Button>

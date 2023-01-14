@@ -4,6 +4,10 @@ import { ArrowRight } from "phosphor-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect } from "react"
+import { useRouter } from "next/router"
+import { api } from "../../lib/axios"
+import { AxiosError } from "axios"
 
 const registerFormSchema = z.object({
   username: z
@@ -15,22 +19,45 @@ const registerFormSchema = z.object({
   name: z
     .string()
     .min(3, { message: "minimum 3 characters" })
-    .regex(/^([a-z\\\\-]+)$/i, { message: "only letters and hyphens" })
     .transform((username) => username.toLowerCase()),
 })
 
 type RegisterFormData = z.infer<typeof registerFormSchema>
 
-async function handleRegister(data: RegisterFormData) {}
+async function handleRegister(data: RegisterFormData) {
+  try {
+    await api.post("/users", {
+      name: data.name,
+      username: data.username,
+    })
+  } catch (err) {
+    if (err instanceof AxiosError && err?.response?.data?.message) {
+      alert(err.response.data.message)
+      return
+    }
+
+    console.error(err)
+  }
+}
 
 export default function Register() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerFormSchema),
   })
+
+  const router = useRouter()
+
+  useEffect(() => {
+    if (router.query.username) {
+      setValue("username", String(router.query.username))
+    }
+  }, [router.query?.username, setValue])
+
   return (
     <Container>
       <Header>
